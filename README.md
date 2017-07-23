@@ -13,7 +13,7 @@ KookMin University Carte (국민대 식단표)
     public class Main {
         public static void main(String[] args) throws Exception {
             Carte carte = new Carte(); //Automatically set date as today.
-    //	    Carte carte = new Carte("2017-07-23"); //Set date manually.
+    //	   Carte carte = new Carte("2017-07-23"); //Set date manually.
         
             /* 
              * get Carte String sorted by Time.
