@@ -1,4 +1,4 @@
-package food;
+package kmuc.food;
 
 import java.io.BufferedReader;
 import java.io.IOException;

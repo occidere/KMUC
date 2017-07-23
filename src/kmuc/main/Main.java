@@ -1,6 +1,6 @@
-package main;
+package kmuc.main;
 
-import food.Carte;
+import kmuc.food.Carte;
 
 public class Main {
 
