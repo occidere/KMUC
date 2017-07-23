@@ -19,27 +19,30 @@ public class Carte {
 	private transient String sdate, edate, today, reqAddress;
 	private transient JSONObject allMenu;
 	private transient List<String> menuByTime[];//아침 점심 저녁
+	private transient boolean isSuccess;
 	
+	/* 날짜 지정 없으면 오늘 요일로 자동 호출 */
 	public Carte(){
-		init();
+		this(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
 	}
 	
-	private void init(){
-		sdate = edate = today = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+	/* 별도의 날짜 지정 가능 yyyy-MM-dd 형태 */
+	public Carte(String date) {
+		init(date);
+	}
+	
+	private void init(String date){
+		sdate = edate = today = date;
 		reqAddress = String.format("%s?sdate=%s&edate=%s&today=%s", ADDRESS, sdate, edate, today);
 		
 		try{
+			isSuccess = true;
 			allMenu = getAllMenuJson(reqAddress);
-			
-			printCarteByTime(); //시간별 출력
-			
 		}
-		catch(ParseException e){
+		catch(Exception e){
 			System.err.println("JSON 파싱 실패");
 			e.printStackTrace();
-		}
-		catch(IOException e){
-			e.printStackTrace();
+			isSuccess = false;
 		}
 	}
 	
@@ -230,10 +233,17 @@ public class Carte {
 		return str.replace("\\r", "").replace("\\n", "").replace("<br>", " ");
 	}
 	
-	public void printCarteByTime(){
+	@SuppressWarnings({ "unchecked", "unused" })
+	public String getCarteByTime(){
+		/* 파싱 실패시 */
+		if(isSuccess == false) return "Parsing Fail";
+		
+		StringBuilder res = new StringBuilder();
+		
 		int i;
 		menuByTime = new LinkedList[3];//아침, 점심, 저녁
 		for(i=0;i<3;i++) menuByTime[i] = new LinkedList<>();
+
 		menuByTime[0].add("\n********** 아침 메뉴 **********");
 		menuByTime[1].add("\n********** 점심 메뉴 **********");
 		menuByTime[2].add("\n********** 저녁 메뉴 **********");
@@ -241,14 +251,13 @@ public class Carte {
 		String[] haksik, bubsik, chiway, faculty, chunghyang;
 		haksik = parseHaksik(allMenu);
 		bubsik = parseBubsik(allMenu);
-		chiway = parseChiway(allMenu);
+		//chiway = parseChiway(allMenu); //차이웨이는 출력에서 제외
 		faculty = parseFaculty(allMenu);
 		chunghyang = parseChunghyang(allMenu);
 
 		boolean isPrinted[] = new boolean[3]; //아침 점심 저녁이 찍힌 적이 있는지 없는지(학식, 법식 등 태그 달기 위한 것)
 		
 		isPrinted[0] = isPrinted[1] = isPrinted[2] = false;
-		
 		/*
 		 * 학식의 경우
 		 * 0번째 : 아침
@@ -280,7 +289,6 @@ public class Carte {
 		}
 		
 		isPrinted[0] = isPrinted[1] = isPrinted[2] = false;
-		
 		/*
 		 * 법식의 경우
 		 * 0번째 : 아침
@@ -325,11 +333,9 @@ public class Carte {
 			}
 		}
 		
+		/* 차이웨이는 중석식 다함
 		isPrinted[0] = isPrinted[1] = isPrinted[2] = false;
-		
-		/*
-		 * 차이웨이는 중석식 다함
-		 */
+		 
 		for(i=0;i<chiway.length;i++){
 			if(isPrinted[1]==false){
 				menuByTime[1].add("\n<< 차이웨이 >>");
@@ -343,9 +349,9 @@ public class Carte {
 			}
 			menuByTime[2].add(chiway[i]);
 		}
+		*/
 		
 		isPrinted[0] = isPrinted[1] = isPrinted[2] = false;
-		
 		/*
 		 * 교직원식당은
 		 * 0~2 : 점심
@@ -370,7 +376,6 @@ public class Carte {
 		}
 
 		isPrinted[0] = isPrinted[1] = isPrinted[2] = false;
-		
 		/*
 		 * 청향은 중석식 다함
 		 */
@@ -388,12 +393,13 @@ public class Carte {
 			menuByTime[2].add(chunghyang[i]);
 		}
 		
-		
-		System.out.printf("### 국민대 식단표(%s) ###\n", today);
+		res.append(String.format("### 국민대 식단표(%s) ###\n", today));
 		for(i=0;i<3;i++){
 			for(String line : menuByTime[i]){
-				if(line.length()>3) System.out.println(line);
+				if(line.length()>3) 
+					res.append(line+"\n");
 			}
 		}
+		return res.toString();
 	}
 }
